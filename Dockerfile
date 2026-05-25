@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Instala dependências do sistema (agora com o 'git' necessário para o Composer)
+# Instala dependências do sistema e ferramentas para o Composer
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -16,24 +16,24 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Configura o Apache para ler o site direto de dentro da pasta /src
-ENV APACHE_DOCUMENT_ROOT /var/www/html/src
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/src
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Ativa o Mod_Rewrite do Apache
 RUN a2enmod rewrite
 
-# Define onde os comandos vão rodar
-WORKDIR /var/www/html/
+# Define a pasta de trabalho principal
+WORKDIR /var/www/html
 
 # Copia todo o código do repositório para o container
 COPY . .
 
-# Baixa todas as dependências do PHP e cria a pasta /vendor
-RUN composer install --no-dev --optimize-autoloader
+# Entra na pasta src (onde está o composer.json) e baixa as dependências
+RUN cd src && composer install --no-dev --optimize-autoloader
 
-# Ajusta as permissões finais
-RUN chown -R www-data:www-data /var/www/html/ \
-    && chmod -R 755 /var/www/html/
+# Ajusta as permissões finais em todo o diretório
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
 EXPOSE 80
