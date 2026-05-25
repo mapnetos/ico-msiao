@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd zip gettext
+    && docker-php-ext-install pdo pdo_mysql mysqli gd zip gettext
 
 # Instala o Composer oficial dentro do container
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
